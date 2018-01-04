@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 # define the function to load training set from file
@@ -120,4 +121,30 @@ if __name__ == '__main__':
     input, label = loadData('testSet.txt')
     b, alpha = SMO_Simplified(input, label, 0.6, 0.001, 40)
     print("b = ", b)
-    print("alpha:\n", alpha)
+    print("non-zero alphas:\n", alpha[alpha > 0])
+
+    # draw support vectors
+    pos_1 = []
+    pos_2 = []
+    neg_1 = []
+    neg_2 = []
+    support_1 = []
+    support_2 = []
+    for i in range(len(label)):
+        if label[i][0] == 1:
+            pos_1.append(input[i][0])
+            pos_2.append(input[i][1])
+        else:
+            neg_1.append(input[i][0])
+            neg_2.append(input[i][1])
+
+        if alpha[i][0] != 0:
+            support_1.append(input[i][0])
+            support_2.append(input[i][1])
+
+    plt.scatter(pos_1, pos_2, label='$y = 1$')
+    plt.scatter(neg_1, neg_2, label='$y = -1$')
+    plt.scatter(support_1, support_2, c='red', label='support vectors')
+    plt.legend()
+
+    plt.show()
