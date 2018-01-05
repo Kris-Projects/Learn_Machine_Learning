@@ -123,7 +123,7 @@ if __name__ == '__main__':
     print("b = ", b)
     print("non-zero alphas:\n", alpha[alpha > 0])
 
-    # draw support vectors
+    # find support vectors
     pos_1 = []
     pos_2 = []
     neg_1 = []
@@ -142,9 +142,16 @@ if __name__ == '__main__':
             support_1.append(input[i][0])
             support_2.append(input[i][1])
 
+    # find separating hyper-plane
+    x_2 = np.linspace(-7, 5, 120)
+    x_1 = -((np.transpose(alpha * label).dot(input))[0][1] * x_2 + b) / \
+          (np.transpose(alpha * label).dot(input))[0][0]
+
+    # draw the scatter and hyperplane on figure
     plt.scatter(pos_1, pos_2, label='$y = 1$')
     plt.scatter(neg_1, neg_2, label='$y = -1$')
     plt.scatter(support_1, support_2, c='red', label='support vectors')
+    plt.plot(x_1, x_2, c='green', label='separating hyperplane')
     plt.legend()
 
     plt.show()
