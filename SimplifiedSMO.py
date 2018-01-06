@@ -96,9 +96,9 @@ def SMO_Simplified(input, label, C, tol, iter_max):
 
                 # calculate the two threshold b_1 and b_2 based on (5.6.13) and (5.6.14)
                 b_1 = b - E_i - y_data[i] * (alpha[i] - alpha_i_old) * (np.transpose(x_data[i]).dot(x_data[i])) -\
-                    y_data[j] * (alpha[j] - alpha_j_old) * (np.transpose(x_data[j]).dot(x_data[j]))
+                    y_data[j] * (alpha[j] - alpha_j_old) * (np.transpose(x_data[j]).dot(x_data[i]))
                 b_2 = b - E_j - y_data[i] * (alpha[i] - alpha_i_old) * (np.transpose(x_data[i]).dot(x_data[i])) -\
-                    y_data[j] * (alpha[j] - alpha_j_old) * (np.transpose(x_data[j]).dot(x_data[j]))
+                    y_data[j] * (alpha[j] - alpha_j_old) * (np.transpose(x_data[i]).dot(x_data[j]))
 
                 # decide which threshold to use
                 if alpha[i] > 0 and alpha[i] < C:
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     input, label = loadData('testSet.txt')
     b, alpha = SMO_Simplified(input, label, 0.6, 0.001, 40)
     print("b = ", b)
-    print("non-zero alphas:\n", alpha[alpha > 0])
+    print("non-zero alphas:\n", alpha[alpha != 0])
 
     # find support vectors
     pos_1 = []
