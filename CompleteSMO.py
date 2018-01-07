@@ -139,7 +139,7 @@ class SVM:
 if __name__ == '__main__':
     input, label = loadData('testSet.txt')
     testSVM = SVM(input, label, 0.6, 0.001)
-    b, alpha = testSVM.fit(40)
+    b, alpha = testSVM.fit(100)
     print("b = ", b)
     print("alpha = ", alpha[alpha>0])
     # find support vectors
