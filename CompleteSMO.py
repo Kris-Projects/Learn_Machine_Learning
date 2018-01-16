@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+# help function to read data in
 def loadData(filename):
     input = []  # store the feature vector x
     label = []  # store the label y
@@ -11,6 +12,7 @@ def loadData(filename):
             label.append([float(tempArr[2])])
     return input, label
 
+# construct the class of SVM
 class SVM:
     # initialize the variables needed
     def __init__(self, input, label, C, tol, k_tup=('lin', 0)):
@@ -21,12 +23,17 @@ class SVM:
         self.m = (self.x_data.shape)[0]
         self.alpha = np.zeros((self.m, 1))
         self.b = 0
+        # the first column is used as an indicator, '1' means the value will be changed
         self.E_cache = np.zeros((self.m, 2))
+        # k_tup is used to specify the kind of kernel function
         self.k_tup = k_tup
+        # K is positive semi-definite matrix to store all the values of kernel functions
         self.K = np.zeros((self.m, self.m))
+        # based on the calculating process of K, we know that this matrix will not change
+        # so we can fill in this matrix in the initial function
         self.fill_K()
 
-    # kernel function
+    # fill in the matrix K based on the specified kernel function
     def fill_K(self):
         if self.k_tup[0] == 'lin':
             self.K = self.x_data.dot(self.x_data.T)
@@ -38,20 +45,27 @@ class SVM:
         else:
             raise NameError('Kernel not recognized!')
 
+    # every time we update alpha and b, the value of every E_i will be changed
+    # so we need a certain function to calculate the present value of E_i we need
     def calc_Ek(self, k):
         return (self.alpha * self.y_data).T.dot(self.K[:, k]) + self.b - self.y_data[k]
 
+    # the random selection of j will only be called if all the indicators in E_cache
+    # is 0, which means we can't use a heuristic way to choose j
     def randSelectJ(self, i):
         j = i
         while (j == i):
             j = int(np.random.uniform(0, self.m))
         return j
 
+    # the heuristic way of choosing j
     def select_J(self, i, E_i):
         max_k = -1
         max_delta_E = 0
         E_j = 0
         self.E_cache[i] = [1, E_i]
+
+        # find the E values with non-zero indicators
         valid_E_list = np.nonzero(self.E_cache[:, 0])[0]
         if len(valid_E_list) > 1:
             for k in valid_E_list:
@@ -64,11 +78,12 @@ class SVM:
                     max_delta_E = delta_E
                     E_j = E_k
             return max_k, E_j
-        else:
+        else: # no valid E_j, so we choose j randomly from the rest of the data
             j = self.randSelectJ(i)
             E_j = self.calc_Ek(j)
         return j, E_j
 
+    # since E_k will be changed every time, we need a function to update the cache
     def update_Ek(self, k):
         E_k = self.calc_Ek(k)
         self.E_cache[k] = [1, E_k]
@@ -80,8 +95,14 @@ class SVM:
             alpha_j = L
         return alpha_j
 
+    # this is the update process of the chosen pair of alpha's
+    # the return value indicates whether this is a successful update
+    # notice that the first "if" statement can also be placed in the "fit" function below
     def inner_loop(self, i):
         E_i = self.calc_Ek(i)
+
+        # check if alpha_i violates the KKT conditions. If this kind of alpha exists,
+        # we continue to choose alpha_j, otherwise we treat this as an unsuccessful loop
         if (self.y_data[i] * E_i < -self.tol and self.alpha[i] < self.C) or\
                 (self.y_data[i] * E_i > self.tol and self.alpha[i] > 0):
             j, E_j = self.select_J(i, E_i)
@@ -133,8 +154,13 @@ class SVM:
 
     def fit(self, max_iter):
         iter = 0
+
+        # for the first iteration, we can search the whole training set for alpha_i
         entire_set = True
         alpha_pair_changed = 0
+
+        # this loop's end condition is that the number of unsuccessful loops
+        # has reached max_iter
         while iter < max_iter and (alpha_pair_changed > 0 or entire_set):
             alpha_pair_changed = 0
             if entire_set:
@@ -142,6 +168,8 @@ class SVM:
                     alpha_pair_changed += self.inner_loop(i)
                 iter += 1
             else:
+                # since it is not necessary to traverse the whole training set every time
+                # we tend to check only the alphas between 0 and C
                 non_bound_value  = np.nonzero((self.alpha > 0) * (self.alpha < self.C))[0]
                 for i in non_bound_value:
                     alpha_pair_changed += self.inner_loop(i)
